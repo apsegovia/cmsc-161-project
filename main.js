@@ -1,3 +1,5 @@
+import Mesh from "./mesh.js";
+
 async function main() {
     //Retrieve <canvas> element
     var canvas = document.getElementById("main_canvas");
@@ -78,37 +80,57 @@ async function main() {
     var uLightDirectionVectorPtr = gl.getUniformLocation(program, "uLightDirectionVector");
     gl.uniform4f(uLightDirectionVectorPtr, -1.0, -3.0, -5.0, 0.0);
 
-    let meshData = null;
+    let meshes = {};
 
     await fetch("./model_references/model.json")
         .then(res => res.json())
         .then(data => {
 
-            meshData = data["Stage"]; // testing muna
+            for (const [name, meshData] of Object.entries(data)) {
 
-            console.log("Vertices:", meshData.vertices);
-            console.log("Normals:", meshData.normals);
-            console.log("Indices:", meshData.indices);
+                meshes[name] = new Mesh(gl, name, meshData);
+
+                console.log("Mesh:", name);
+                console.log("Vertices:", meshData.vertices.length);
+                console.log("Normals:", meshData.normals.length);
+                console.log("Indices:", meshData.indices.length);
+            }
+
         });
 
+    // let meshData = null;
 
-    //buffer creation
-    var verticesBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(meshData.vertices), gl.STATIC_DRAW);
+    // await fetch("./model_references/model.json")
+    //     .then(res => res.json())
+    //     .then(data => {
+
+    //         meshData = data["Stage"]; // testing muna
+
+    //         console.log("Vertices:", meshData.vertices);
+    //         console.log("Normals:", meshData.normals);
+    //         console.log("Indices:", meshData.indices);
+    //     });
+
+
+    // //buffer creation
+    // var verticesBuffer = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(meshData.vertices), gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, meshes["Stage"].vertexBuffer);
     gl.vertexAttribPointer(aPositionPointer, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(aPositionPointer);
 
-    //buffer creation
-    var indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(meshData.indices), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    // //buffer creation
+    // var indexBuffer = gl.createBuffer();
+    // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    // gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(meshData.indices), gl.STATIC_DRAW);
+    // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
-    //buffer creation
-    var normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(meshData.normals), gl.STATIC_DRAW);
+    // //buffer creation
+    // var normalBuffer = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(meshData.normals), gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, meshes["Stage"].normalBuffer);
     gl.vertexAttribPointer(aNormalPointer, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(aNormalPointer);
 
@@ -121,7 +143,7 @@ async function main() {
     let angle = 0;
     let previousTime = 0;
 
-    console.log("yo draw")
+    console.log(meshes)
 
     function render(time) {
         let deltaTime = time - previousTime; // since FPS varies, time is a good basis; i remember this being an issue in Fallout New Vegas where 60fps sped up the game from the normal 30fps because there was no delta time lol
@@ -145,8 +167,8 @@ async function main() {
         gl.uniformMatrix4fv(uNormalMatrixPtr, false, normalMatrix);
 
         // Draw
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        gl.drawElements(gl.TRIANGLES, meshData.indices.length, gl.UNSIGNED_BYTE, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshes["Stage"].indexBuffer);
+        gl.drawElements(gl.TRIANGLES, meshes["Stage"].indices.length, gl.UNSIGNED_BYTE, 0);
         if (animation_mode) {
             requestAnimationFrame(render); // https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame
         }
