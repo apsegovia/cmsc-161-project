@@ -98,7 +98,7 @@ async function main() {
     // fetching meshes from .json, which were converted from a .obj exported from blender
     let meshes = {};
 
-    await fetch("./model_references/model.json")
+    await fetch("./model.json")
         .then(res => res.json())
         .then(data => {
 
@@ -110,6 +110,7 @@ async function main() {
                 console.log("Vertices:", meshData.vertices.length);
                 console.log("Normals:", meshData.normals.length);
                 console.log("Indices:", meshData.indices.length);
+
             }
 
         });
@@ -117,31 +118,55 @@ async function main() {
     console.log(meshes)
 
     // please let me have this one whimsical function name
-    // function floatMysteriously(mesh, deltaTime) {
+    function floatMysteriously(mesh, deltaTime) {
 
-    //     mesh.angle += deltaTime * 0.001;
-    //     mesh.time += deltaTime * 0.001;
+        mesh.angle += deltaTime * 0.001;
+        mesh.time += deltaTime * 0.001;
 
-    //     let bob = Math.sin(mesh.time) * 0.2; // bob as in bobbing
+        let bob = Math.sin(mesh.time) * 0.1; // bob as in bobbing
 
-    //     mat4.identity(mesh.TM);
+        mat4.identity(mesh.TM);
 
-    //     mat4.translate(
-    //         mesh.TM,
-    //         mesh.TM,
-    //         [
-    //             mesh.position[0],
-    //             mesh.position[1] + bob,
-    //             mesh.position[2]
-    //         ]
-    //     );
+        // mat4.translate(
+        //     mesh.TM,
+        //     mesh.TM,
+        //     [
+        //         mesh.blenderPosition[0], 
+        //         mesh.blenderPosition[1], 
+        //         mesh.blenderPosition[2]
+        //     ]
+        // );
 
-    //     mat4.rotateY(mesh.TM, mesh.TM, mesh.angle);
-    // }
+        
 
-    // meshes["Sword"].program = floatMysteriously;
-    // meshes["Shield"].program = floatMysteriously;
-    // meshes["Staff"].program = floatMysteriously;
+        // mat4.translate(
+        //     mesh.TM,
+        //     mesh.TM,
+        //     [
+        //         mesh.blenderPosition[0], 
+        //         mesh.blenderPosition[1] + bob, 
+        //         mesh.blenderPosition[2]
+        //     ]
+        // );
+
+        // mat4.rotateY(mesh.TM, mesh.TM, mesh.angle);
+    }
+
+
+    meshes["Sword"].blenderPosition = [
+        -2.50222, 1.1956, 4.36323
+    ]
+    meshes["Shield"].blenderPosition = [
+        5.00765, 1.07053, -0.032968
+    ]
+    meshes["Staff"].blenderPosition = [
+        -2.50796, 1.75982, -4.32916
+    ]
+
+
+    meshes["Sword"].animation = floatMysteriously;
+    meshes["Shield"].animation = floatMysteriously;
+    meshes["Staff"].animation = floatMysteriously;
 
     let previousTime = 0;
 

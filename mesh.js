@@ -16,6 +16,11 @@ export default class Mesh {
         this.uvBuffer = null;
         this.indexBuffer = null;
         
+        // if object will have animation
+        this.animation = null;
+        this.angle = 0;
+        this.time = 0;
+        this.blenderPosition = null;
         // for transformation
         this.TM = this.identity();
 
@@ -57,8 +62,8 @@ export default class Mesh {
     }
 
     draw(deltaTime) {
-        if (this.program) {
-            this.program(this, deltaTime);
+        if (this.animation) {
+            this.animation(this, deltaTime);
         }
     }
 }
