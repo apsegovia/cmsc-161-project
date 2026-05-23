@@ -127,29 +127,19 @@ async function main() {
 
         mat4.identity(mesh.TM);
 
-        // mat4.translate(
-        //     mesh.TM,
-        //     mesh.TM,
-        //     [
-        //         mesh.blenderPosition[0], 
-        //         mesh.blenderPosition[1], 
-        //         mesh.blenderPosition[2]
-        //     ]
-        // );
+        mat4.translate(
+            mesh.TM,
+            mesh.TM,
+            [
+                mesh.blenderPosition[0], 
+                mesh.blenderPosition[1], 
+                mesh.blenderPosition[2]
+            ]
+        );
+
+        mat4.rotateY(mesh.TM, mesh.TM, mesh.angle);
 
         
-
-        // mat4.translate(
-        //     mesh.TM,
-        //     mesh.TM,
-        //     [
-        //         mesh.blenderPosition[0], 
-        //         mesh.blenderPosition[1] + bob, 
-        //         mesh.blenderPosition[2]
-        //     ]
-        // );
-
-        // mat4.rotateY(mesh.TM, mesh.TM, mesh.angle);
     }
 
 
