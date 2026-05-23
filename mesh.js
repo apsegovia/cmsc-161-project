@@ -4,18 +4,18 @@ export default class Mesh {
         this.gl = gl;
         this.name = name;
 
-        // just to verify
+        // to initialize buffers
         this.vertices = data.vertices;
         this.normals = data.normals;
         this.uvs = data.uvs;
         this.indices = data.indices;
-
+       
         // buffers
         this.vertexBuffer = null;
         this.normalBuffer = null;
         this.uvBuffer = null;
         this.indexBuffer = null;
-
+        
         // for transformation
         this.TM = this.identity();
 
@@ -52,11 +52,13 @@ export default class Mesh {
         // 4. Index Buffer
         this.indexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(this.indices), gl.STATIC_DRAW);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
 
     }
 
-    draw(program) {
-        // bind + draw here
+    draw(deltaTime) {
+        if (this.program) {
+            this.program(this, deltaTime);
+        }
     }
 }

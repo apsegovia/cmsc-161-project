@@ -1,12 +1,17 @@
 import Mesh from "./mesh.js";
 
 async function main() {
+
+    /**
+     *  mostly taken from the last exer for a while
+     */
+
     //Retrieve <canvas> element
     var canvas = document.getElementById("main_canvas");
     if (!canvas) {
         console.log("Failed to retrieve the <canvas> element");
     }
-    console.log("canvas found")
+
     //Get the rendering context (WebGL)
     var gl = initializeWebGL(canvas, true);
     //initialize shaders program
@@ -48,6 +53,10 @@ async function main() {
     gl.uniformMatrix4fv(uProjectionMatrixPointer, false, new Float32Array(projectionMatrix));
     /**END PROJECTION MATRIX SPECIFICATION**/
 
+
+    /**
+     *  TODO: keyboard controls to move camera
+     */
     /**START VIEW MATRIX SPECIFICATION**/
     var lookAtPoint = [0.0, 0.0, 0.0, 1.0];              //where the camera is looking
     var eyePoint = [15.0, 15.0, 1.0, 1.0];              //where the camera is placed
@@ -70,6 +79,9 @@ async function main() {
     mat4.transpose(normalMatrix, normalMatrix);
     gl.uniformMatrix4fv(uNormalMatrixPtr, false, new Float32Array(normalMatrix));
 
+    /**
+     *  TODO if there's still time, separate spotlights per weapon
+     */
     //set-up light and material parameters
     var uMaterialDiffuseColorPtr = gl.getUniformLocation(program, "uMaterialDiffuseColor");
     gl.uniform4f(uMaterialDiffuseColorPtr, 0.0, 1.0, 0.0, 1.0);
@@ -80,6 +92,10 @@ async function main() {
     var uLightDirectionVectorPtr = gl.getUniformLocation(program, "uLightDirectionVector");
     gl.uniform4f(uLightDirectionVectorPtr, -1.0, -3.0, -5.0, 0.0);
 
+    gl.enableVertexAttribArray(aPositionPointer);
+    gl.enableVertexAttribArray(aNormalPointer);
+
+    // fetching meshes from .json, which were converted from a .obj exported from blender
     let meshes = {};
 
     await fetch("./model_references/model.json")
@@ -98,95 +114,74 @@ async function main() {
 
         });
 
-    // let meshData = null;
-
-    // await fetch("./model_references/model.json")
-    //     .then(res => res.json())
-    //     .then(data => {
-
-    //         meshData = data["Stage"]; // testing muna
-
-    //         console.log("Vertices:", meshData.vertices);
-    //         console.log("Normals:", meshData.normals);
-    //         console.log("Indices:", meshData.indices);
-    //     });
-
-
-    // //buffer creation
-    // var verticesBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(meshData.vertices), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, meshes["Stage"].vertexBuffer);
-    gl.vertexAttribPointer(aPositionPointer, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(aPositionPointer);
-
-    // //buffer creation
-    // var indexBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    // gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(meshData.indices), gl.STATIC_DRAW);
-    // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-    // //buffer creation
-    // var normalBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(meshData.normals), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, meshes["Stage"].normalBuffer);
-    gl.vertexAttribPointer(aNormalPointer, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(aNormalPointer);
-
-    //draw part
-    // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    // gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_BYTE, 0);
-
-    let animation_mode = false;
-
-    let angle = 0;
-    let previousTime = 0;
-
     console.log(meshes)
 
+    // please let me have this one whimsical function name
+    // function floatMysteriously(mesh, deltaTime) {
+
+    //     mesh.angle += deltaTime * 0.001;
+    //     mesh.time += deltaTime * 0.001;
+
+    //     let bob = Math.sin(mesh.time) * 0.2; // bob as in bobbing
+
+    //     mat4.identity(mesh.TM);
+
+    //     mat4.translate(
+    //         mesh.TM,
+    //         mesh.TM,
+    //         [
+    //             mesh.position[0],
+    //             mesh.position[1] + bob,
+    //             mesh.position[2]
+    //         ]
+    //     );
+
+    //     mat4.rotateY(mesh.TM, mesh.TM, mesh.angle);
+    // }
+
+    // meshes["Sword"].program = floatMysteriously;
+    // meshes["Shield"].program = floatMysteriously;
+    // meshes["Staff"].program = floatMysteriously;
+
+    let previousTime = 0;
+
     function render(time) {
-        let deltaTime = time - previousTime; // since FPS varies, time is a good basis; i remember this being an issue in Fallout New Vegas where 60fps sped up the game from the normal 30fps because there was no delta time lol
+        let deltaTime = time - previousTime;
         previousTime = time;
 
-        // Clear screen
+        // clear screen
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        // Rotate cube
-        angle += deltaTime * 0.001;
+        // update render of each object
+        for (const mesh of Object.values(meshes)) {
 
-        mat4.identity(modelMatrix);
-        // mat4.rotateY(modelMatrix, modelMatrix, angle);
+            // for the three weapons; the stage and pedestal are null for update so this does nothing for those
+            mesh.draw(deltaTime);
 
-        // Update model matrix
-        gl.uniformMatrix4fv(uModelMatrixPointer, false, modelMatrix);
+            gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vertexBuffer);
+            gl.vertexAttribPointer(aPositionPointer, 4, gl.FLOAT, false, 0, 0);
 
-        // Update normal matrix
-        mat4.invert(normalMatrix, modelMatrix);
-        mat4.transpose(normalMatrix, normalMatrix);
-        gl.uniformMatrix4fv(uNormalMatrixPtr, false, normalMatrix);
+            gl.bindBuffer(gl.ARRAY_BUFFER, mesh.normalBuffer);
+            gl.vertexAttribPointer(aNormalPointer, 4, gl.FLOAT, false, 0, 0);
 
-        // Draw
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshes["Stage"].indexBuffer);
-        gl.drawElements(gl.TRIANGLES, meshes["Stage"].indices.length, gl.UNSIGNED_BYTE, 0);
-        if (animation_mode) {
-            requestAnimationFrame(render); // https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame
+            // update model matrix
+            gl.uniformMatrix4fv(uModelMatrixPointer, false, mesh.TM);
+
+            // update normal matrix
+            mat4.invert(normalMatrix, mesh.TM);
+            mat4.transpose(normalMatrix, normalMatrix);
+            gl.uniformMatrix4fv(uNormalMatrixPtr, false, normalMatrix);
+
+            // draw/render
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
+            gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
         }
-        return;
+
+        requestAnimationFrame(render);
     }
 
     requestAnimationFrame(render);
 
-
-    // document.getElementById("animationSwitch").onclick = function () {
-    //     animation_mode = this.checked;
-    //     document.getElementById("animationSwitchOut").innerHTML =
-    //         this.checked ? "ON" : "OFF";
-    //     if (animation_mode) {
-    //         requestAnimationFrame(render); // https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame
-    //     }
-
-    // }
 }
 
 main();
