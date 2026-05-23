@@ -95,7 +95,7 @@ def parse_obj(filepath):
 
 # main part
 
-meshes = parse_obj("./project_models_test.obj")
+meshes = parse_obj("./model_references/project_models.obj")
 
 # JSON
 output = {}
