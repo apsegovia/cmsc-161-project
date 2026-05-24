@@ -22,18 +22,9 @@ export default class Mesh {
         this.time = 0;
         this.blenderPosition = null;
         // for transformation
-        this.TM = this.identity();
+        this.TM = mat4.create();
 
         this.buildBuffers();
-    }
-
-    identity() {
-        return [
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1
-        ];
     }
 
     buildBuffers() {
