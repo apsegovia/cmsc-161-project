@@ -22,9 +22,12 @@
         uniform vec4 uLightDirectionVector;     // l - global light
 
         // spotlights
-        uniform vec3 uSpotPosition;
-        uniform vec3 uSpotDirection;
-        uniform float uSpotCutoff;
+        uniform vec3 uSpotPosition[3];
+        uniform vec3 uSpotDirection[3];
+        uniform float uSpotCutoff[3];
+
+        // ambient light so parts that don't get hit with much light isn't in complete darkness...
+        uniform vec4 uAmbientColor;
 
         varying vec4 vDiffuseColor;             // intensity of the colors based on light
 
@@ -49,19 +52,23 @@
             float globalLambert = max(dot(-normalized_uLightDirectionVector, normalized_aNormalVector), 0.0);
 
             // SPOTLIGHT PART
-            vec3 spotVector = normalize(uSpotPosition - worldPosition.xyz);
-            float theta = dot(normalize(-spotVector), normalize(uSpotDirection));
             float spotlightLambert = 0.0;
-
-            // this defines the cone part of the spotlight
-            if(theta > uSpotCutoff){
-                spotlightLambert = max(dot(spotVector, normalized_aNormalVector.xyz), 0.0);
-            }
+            for (int i = 0; i < 3; i++) {
+                vec3 spotVector = normalize(uSpotPosition[i] - worldPosition.xyz);
+                float theta = dot(normalize(-spotVector), normalize(uSpotDirection[i]));
             
+                // this defines the cone part of the spotlight
+                if(theta > uSpotCutoff[i]){
+                    spotlightLambert = max(dot(spotVector, normalized_aNormalVector.xyz), 0.0);
+                }
+            }
+        
             // combine lights
-            float totalLight = globalLambert + spotlightLambert;
+            float totalLight = clamp(globalLambert + spotlightLambert, 0.0, 1.0); // so intensity doesn't go over 1
             vec4 diffuseColor = uMaterialDiffuseColor * uLightDiffuseColor * totalLight;
-            vDiffuseColor = vec4(diffuseColor.r, diffuseColor.g, diffuseColor.b, 1.0);
+            vec4 ambientColor = uMaterialDiffuseColor * uAmbientColor;
+            vec4 finalColor = ambientColor + diffuseColor;
+            vDiffuseColor = vec4(finalColor.rgb,1.0);
         }
 </script>
 

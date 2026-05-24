@@ -1,4 +1,5 @@
 import Mesh from "./mesh.js";
+import Spotlight from "./spotlight.js";
 
 async function main() {
 
@@ -53,10 +54,6 @@ async function main() {
     gl.uniformMatrix4fv(uProjectionMatrixPointer, false, new Float32Array(projectionMatrix));
     /**END PROJECTION MATRIX SPECIFICATION**/
 
-
-    /**
-     *  TODO: keyboard controls to move camera
-     */
     /**START VIEW MATRIX SPECIFICATION**/
     var lookAtPoint = [-2.50222, 1.1956, 4.36323, 1.0]; //where the camera is looking // this is the sword lol
     var eyePoint = [0, 1, 0, 1.0];              //where the camera is placed
@@ -79,18 +76,24 @@ async function main() {
     mat4.transpose(normalMatrix, normalMatrix);
     gl.uniformMatrix4fv(uNormalMatrixPtr, false, new Float32Array(normalMatrix));
 
-    /**
-     *  TODO if there's still time, separate spotlights per weapon
-     */
     //set-up light and material parameters
     var uMaterialDiffuseColorPtr = gl.getUniformLocation(program, "uMaterialDiffuseColor");
     gl.uniform4f(uMaterialDiffuseColorPtr, 0.0, 1.0, 0.0, 1.0);
 
     var uLightDiffuseColorPtr = gl.getUniformLocation(program, "uLightDiffuseColor");
-    gl.uniform4f(uLightDiffuseColorPtr, 1.0, 1.0, 1.0, 1.0);
+    gl.uniform4f(uLightDiffuseColorPtr, 0.2, 0.2, 0.2, 1.0); // dim global lighting so the spotlights can pop
 
     var uLightDirectionVectorPtr = gl.getUniformLocation(program, "uLightDirectionVector");
-    gl.uniform4f(uLightDirectionVectorPtr, -1.0, -3.0, -5.0, 0.0);
+    gl.uniform4f(uLightDirectionVectorPtr, 0, -1, 0, 0); // changing this to global light that points down
+
+    // spotlight pointers
+    var uSpotPositionPtr = gl.getUniformLocation(program, "uSpotPosition");
+    var uSpotDirectionPtr = gl.getUniformLocation(program, "uSpotDirection");
+    var uSpotCutoffPtr = gl.getUniformLocation(program, "uSpotCutoff");
+
+    // ambient light
+    var uAmbientColorPtr = gl.getUniformLocation(program, "uAmbientColor");
+    gl.uniform4f(uAmbientColorPtr, 0.2, 0.2, 0.2, 1.0);
 
     gl.enableVertexAttribArray(aPositionPointer);
     gl.enableVertexAttribArray(aNormalPointer);
@@ -115,7 +118,84 @@ async function main() {
 
         });
 
-    console.log(meshes)
+    // meshes["sample"] = new Mesh(gl, "sample", { // for debug
+
+    //     vertices: [
+
+    //         // front
+    //         -0.5, 0.5, 0.5, 1, -0.5, 1.5, 0.5, 1, 0.5, 1.5, 0.5, 1, 0.5, 0.5, 0.5, 1,
+
+    //         // back
+    //         0.5, 0.5, -0.5, 1, 0.5, 1.5, -0.5, 1, -0.5, 1.5, -0.5, 1, -0.5, 0.5, -0.5, 1,
+
+    //         // top
+    //         -0.5, 1.5, -0.5, 1, -0.5, 1.5, 0.5, 1, 0.5, 1.5, 0.5, 1, 0.5, 1.5, -0.5, 1,
+
+    //         // bottom
+    //         -0.5, 0.5, 0.5, 1, -0.5, 0.5, -0.5, 1, 0.5, 0.5, -0.5, 1, 0.5, 0.5, 0.5, 1,
+
+    //         // right
+    //         0.5, 0.5, 0.5, 1, 0.5, 1.5, 0.5, 1, 0.5, 1.5, -0.5, 1, 0.5, 0.5, -0.5, 1,
+
+    //         // left
+    //         -0.5, 0.5, -0.5, 1, -0.5, 1.5, -0.5, 1, -0.5, 1.5, 0.5, 1, -0.5, 0.5, 0.5, 1
+    //     ],
+
+    //     normals: [
+
+    //         0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+    //         0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0,
+
+    //         0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
+    //         0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0,
+
+    //         1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+    //         -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0
+    //     ],
+
+    //     uvs: new Array(48).fill(0),
+
+    //     indices: [
+
+    //         0, 1, 2, 0, 2, 3,
+    //         4, 5, 6, 4, 6, 7,
+    //         8, 9, 10, 8, 10, 11,
+    //         12, 13, 14, 12, 14, 15,
+    //         16, 17, 18, 16, 18, 19,
+    //         20, 21, 22, 20, 22, 23
+    //     ]
+    // });
+    // meshes["Ground"] = new Mesh(gl, "Ground", {
+
+    //     vertices: [
+    //         -15, 0, -15, 1,
+    //         -15, 0, 15, 1,
+    //         15, 0, 15, 1,
+    //         15, 0, -15, 1
+    //     ],
+
+    //     normals: [
+    //         0, 1, 0, 0,
+    //         0, 1, 0, 0,
+    //         0, 1, 0, 0,
+    //         0, 1, 0, 0
+    //     ],
+
+    //     uvs: [
+    //         0, 0,
+    //         0, 1,
+    //         1, 1,
+    //         1, 0
+    //     ],
+
+    //     indices: [
+    //         0, 1, 2,
+    //         0, 2, 3
+    //     ]
+
+    // });
+
+    console.log(meshes);
 
     // please let me have this one whimsical function name
     function floatMysteriously(mesh, deltaTime) {
@@ -138,28 +218,40 @@ async function main() {
         );
 
         mat4.rotateY(mesh.TM, mesh.TM, mesh.angle);
-
-
     }
 
-
     // since I had to move the objects to 0,0,0 in blender 
-    // so I can rotate them here around the origin
+    // so I can rotate them here in webgl around the origin
     // and then translate by these coordinates where the pedestals are
-    meshes["Sword"].blenderPosition = [
-        -2.50222, 1.1956, 4.36323
-    ]
-    meshes["Shield"].blenderPosition = [
-        5.00765, 1.07053, -0.032968
-    ]
-    meshes["Staff"].blenderPosition = [
-        -2.50796, 1.75982, -4.32916
-    ]
-
+    meshes["Sword"].blenderPosition = [-2.50222, 1.1956, 4.36323];
+    meshes["Shield"].blenderPosition = [5.00765, 1.07053, -0.032968];
+    meshes["Staff"].blenderPosition = [-2.50796, 1.75982, -4.32916];
 
     meshes["Sword"].animation = floatMysteriously;
     meshes["Shield"].animation = floatMysteriously;
     meshes["Staff"].animation = floatMysteriously;
+
+    // spotlight locations same as the weapons, just higher
+    let spotlights = [];
+
+    spotlights.push(new Spotlight([-2.50222, 3, 4.36323], [0, -1, 0], 30));
+    spotlights.push(new Spotlight([5.00765, 3, -0.032968], [0, -1, 0], 30));
+    spotlights.push(new Spotlight([-2.50796, 3, -4.32916], [0, -1, 0], 30));
+
+    //
+    let positions = [];
+    let directions = [];
+    let cutoffs = [];
+
+    for (const light of spotlights) {
+        positions.push(...light.position);
+        directions.push(...light.direction);
+        cutoffs.push(light.cutoff);
+    }
+
+    gl.uniform3fv(uSpotPositionPtr, positions);
+    gl.uniform3fv(uSpotDirectionPtr, directions);
+    gl.uniform1fv(uSpotCutoffPtr, cutoffs);
 
     // https://learnwebgl.brown37.net/07_cameras/camera_linear_motion.html
     // https://learnopengl.com/Getting-started/Camera
@@ -173,7 +265,13 @@ async function main() {
         keys[e.key.toLowerCase()] = false;
     });
 
-    let yaw = 0; // rotation about the camera's Y axis, in webGL
+    // let yaw = 0; // rotation about the camera's Y axis, in webGL 
+    // // i want it facing the sword first
+    let initialForward = vec3.create();
+    vec3.subtract(initialForward, lookAtPoint, eyePoint);
+    vec3.normalize(initialForward, initialForward);
+    let yaw = Math.atan2(initialForward[0], initialForward[2]);
+
     let previousTime = 0;
 
     function render(time) {
@@ -190,7 +288,7 @@ async function main() {
         /**
          *  update camera first when WASD QE are pressed
          */
-        
+
         // rotate in place; q is left, e is right
         if (keys["q"]) yaw += turnSpeed;
         if (keys["e"]) yaw -= turnSpeed;
@@ -211,11 +309,11 @@ async function main() {
         vec3.scale(move, forward, speed);
         if (keys["w"]) vec3.add(eyePoint, eyePoint, move);
         if (keys["s"]) vec3.sub(eyePoint, eyePoint, move);
-        
+
         vec3.scale(move, right, speed);
-        if (keys["d"]) vec3.add(eyePoint, eyePoint, move );
+        if (keys["d"]) vec3.add(eyePoint, eyePoint, move);
         if (keys["a"]) vec3.sub(eyePoint, eyePoint, move);
-        
+
         // update where it's looking
         vec3.add(lookAtPoint, eyePoint, forward);
 
@@ -226,7 +324,7 @@ async function main() {
         // update render of each object
         for (const mesh of Object.values(meshes)) {
 
-            // for the three weapons; the stage and pedestal are null for update so this does nothing for those
+            // for the three weapons; the stage and pedestal are null for Mesh.draw so they just remain static
             mesh.draw(deltaTime);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vertexBuffer);
