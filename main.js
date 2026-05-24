@@ -58,8 +58,8 @@ async function main() {
      *  TODO: keyboard controls to move camera
      */
     /**START VIEW MATRIX SPECIFICATION**/
-    var lookAtPoint = [0.0, 0.0, 0.0, 1.0];              //where the camera is looking
-    var eyePoint = [15.0, 15.0, 1.0, 1.0];              //where the camera is placed
+    var lookAtPoint = [-2.50222, 1.1956, 4.36323, 1.0]; //where the camera is looking // this is the sword lol
+    var eyePoint = [0, 1, 0, 1.0];              //where the camera is placed
     var upVector = [0.0, 1.0, 0.0, 0.0];              //orientation of the camera
 
     viewMatrix = mat4.create();
@@ -120,7 +120,7 @@ async function main() {
     // please let me have this one whimsical function name
     function floatMysteriously(mesh, deltaTime) {
 
-        mesh.angle += deltaTime * 0.001;
+        mesh.angle += deltaTime * 0.00025;
         mesh.time += deltaTime * 0.001;
 
         let bob = Math.sin(mesh.time) * 0.1; // bob as in bobbing
@@ -131,18 +131,21 @@ async function main() {
             mesh.TM,
             mesh.TM,
             [
-                mesh.blenderPosition[0], 
-                mesh.blenderPosition[1], 
+                mesh.blenderPosition[0],
+                mesh.blenderPosition[1] + bob,
                 mesh.blenderPosition[2]
             ]
         );
 
         mat4.rotateY(mesh.TM, mesh.TM, mesh.angle);
 
-        
+
     }
 
 
+    // since I had to move the objects to 0,0,0 in blender 
+    // so I can rotate them here around the origin
+    // and then translate by these coordinates where the pedestals are
     meshes["Sword"].blenderPosition = [
         -2.50222, 1.1956, 4.36323
     ]
@@ -158,14 +161,67 @@ async function main() {
     meshes["Shield"].animation = floatMysteriously;
     meshes["Staff"].animation = floatMysteriously;
 
+    // https://learnwebgl.brown37.net/07_cameras/camera_linear_motion.html
+    // https://learnopengl.com/Getting-started/Camera
+    const keys = {};
+
+    window.addEventListener("keydown", (e) => {
+        keys[e.key.toLowerCase()] = true;
+    });
+
+    window.addEventListener("keyup", (e) => {
+        keys[e.key.toLowerCase()] = false;
+    });
+
+    let yaw = 0; // rotation about the camera's Y axis, in webGL
     let previousTime = 0;
 
     function render(time) {
         let deltaTime = time - previousTime;
         previousTime = time;
 
+        // camera variables
+        let speed = deltaTime * 0.001;
+        let turnSpeed = deltaTime * 0.001;
+
         // clear screen
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        /**
+         *  update camera first when WASD QE are pressed
+         */
+        
+        // rotate in place; q is left, e is right
+        if (keys["q"]) yaw += turnSpeed;
+        if (keys["e"]) yaw -= turnSpeed;
+
+        // based on the yaw, adjust where the camera looks towards
+        let forward = vec3.fromValues(Math.sin(yaw), 0, Math.cos(yaw));
+        vec3.normalize(forward, forward);
+
+        // by knowing where is up, we can also find the sides, this case; right
+        let right = vec3.create();
+        vec3.cross(right, forward, upVector);
+        vec3.normalize(right, right);
+
+        // reusable movement vector
+        let move = vec3.create();
+
+        // W - forward, S - backward, A - Strafe Left, D - Strafe Right
+        vec3.scale(move, forward, speed);
+        if (keys["w"]) vec3.add(eyePoint, eyePoint, move);
+        if (keys["s"]) vec3.sub(eyePoint, eyePoint, move);
+        
+        vec3.scale(move, right, speed);
+        if (keys["d"]) vec3.add(eyePoint, eyePoint, move );
+        if (keys["a"]) vec3.sub(eyePoint, eyePoint, move);
+        
+        // update where it's looking
+        vec3.add(lookAtPoint, eyePoint, forward);
+
+        // update camera
+        mat4.lookAt(viewMatrix, eyePoint, lookAtPoint, upVector);
+        gl.uniformMatrix4fv(uViewMatrixPointer, false, viewMatrix);
 
         // update render of each object
         for (const mesh of Object.values(meshes)) {
