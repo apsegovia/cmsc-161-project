@@ -93,7 +93,7 @@ async function main() {
 
     // ambient light
     var uAmbientColorPtr = gl.getUniformLocation(program, "uAmbientColor");
-    gl.uniform4f(uAmbientColorPtr, 0.15, 0.15, 0.15, 1.0);
+    gl.uniform4f(uAmbientColorPtr, 0.05, 0.05, 0.05, 1.0);
 
     gl.enableVertexAttribArray(aPositionPointer);
     gl.enableVertexAttribArray(aNormalPointer);
@@ -234,9 +234,9 @@ async function main() {
     // spotlight locations same as the weapons, just higher
     let spotlights = [];
 
-    spotlights.push(new Spotlight([-2.50222, 3, 4.36323], [0, -1, 0], 25));
-    spotlights.push(new Spotlight([5.00765, 3, -0.032968], [0, -1, 0], 25));
-    spotlights.push(new Spotlight([-2.50796, 3, -4.32916], [0, -1, 0], 25));
+    spotlights.push(new Spotlight([-2.50222, 3, 4.36323], [0, -1, 0], 15));
+    spotlights.push(new Spotlight([5.00765, 3, -0.032968], [0, -1, 0], 15));
+    spotlights.push(new Spotlight([-2.50796, 3, -4.32916], [0, -1, 0], 15));
 
     //
     let positions = [];
