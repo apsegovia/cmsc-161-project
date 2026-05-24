@@ -21,12 +21,21 @@ async function main() {
     var program = initializeProgram(gl, vertexShader, fragmentShader);
     gl.useProgram(program);
 
-    var aPositionPointer = gl.getAttribLocation(program, "aPosition");
+    var aPositionPointer = gl.getAttribLocation(program, "aPosition"); // vertex
     gl.enableVertexAttribArray(aPositionPointer);
-    var aNormalPointer = gl.getAttribLocation(program, "aNormal");
+    var aNormalPointer = gl.getAttribLocation(program, "aNormal"); // normal
     gl.enableVertexAttribArray(aNormalPointer);
+    // var aColorPointer = gl.getAttribLocation(program, "aColor"); // color
+    // gl.enableVertexAttribArray(aColorPointer);
+    // var aUVPointer = gl.getAttribLocation(program, "aUV"); // UV
+    // gl.enableVertexAttribArray(aUVPointer);
 
     var uFragColorPointer = gl.getUniformLocation(program, "uColor");
+
+    // var uUseTexturePtr = gl.getUniformLocation(program, "uUseTexture");
+    // var uUseVertexColorPtr = gl.getUniformLocation(program, "uUseVertexColor");
+    // var uTexturePtr = gl.getUniformLocation(program, "uTexture");
+
     var uModelMatrixPointer = gl.getUniformLocation(program, "uModelMatrix");
     var uViewMatrixPointer = gl.getUniformLocation(program, "uViewMatrix");
     var uProjectionMatrixPointer = gl.getUniformLocation(program, "uProjectionMatrix");
@@ -256,6 +265,9 @@ async function main() {
             gl.bindBuffer(gl.ARRAY_BUFFER, mesh.normalBuffer);
             gl.vertexAttribPointer(aNormalPointer, 4, gl.FLOAT, false, 0, 0);
 
+            // gl.bindBuffer(gl.ARRAY_BUFFER, mesh.uvBuffer);
+            // gl.vertexAttribPointer(aUVPointer, 2, gl.FLOAT, false, 0, 0);
+
             // update model matrix
             gl.uniformMatrix4fv(uModelMatrixPointer, false, mesh.TM);
 
@@ -263,6 +275,9 @@ async function main() {
             mat4.invert(normalMatrix, mesh.TM);
             mat4.transpose(normalMatrix, normalMatrix);
             gl.uniformMatrix4fv(uNormalMatrixPtr, false, normalMatrix);
+
+            // use mesh color
+            gl.uniform4fv(uMaterialDiffuseColorPtr, mesh.color);
 
             // draw/render
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);

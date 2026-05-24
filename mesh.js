@@ -16,6 +16,9 @@ export default class Mesh {
         this.uvBuffer = null;
         this.indexBuffer = null;
         
+        // mesh color
+        this.color = data.color || [1.0,1.0,1.0,1.0];
+
         // if object will have animation
         this.animation = null;
         this.angle = 0;
