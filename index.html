@@ -56,15 +56,14 @@
             for (int i = 0; i < 3; i++) {
                 vec3 spotVector = normalize(uSpotPosition[i] - worldPosition.xyz);
                 float theta = dot(normalize(-spotVector), normalize(uSpotDirection[i]));
-            
-                // this defines the cone part of the spotlight
+
                 if(theta > uSpotCutoff[i]){
-                    spotlightLambert = max(dot(spotVector, normalized_aNormalVector.xyz), 0.0);
+                    spotlightLambert += 1.0; // literally if you're int he spotlight, just be b r i g h t
                 }
             }
         
             // combine lights
-            float totalLight = clamp(globalLambert + spotlightLambert, 0.0, 1.0); // so intensity doesn't go over 1
+            float totalLight = globalLambert + spotlightLambert; 
             vec4 diffuseColor = uMaterialDiffuseColor * uLightDiffuseColor * totalLight;
             vec4 ambientColor = uMaterialDiffuseColor * uAmbientColor;
             vec4 finalColor = ambientColor + diffuseColor;
