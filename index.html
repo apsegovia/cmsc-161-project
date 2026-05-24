@@ -5,43 +5,66 @@
 </head>
 
 <body>
+    <!-- https://webglfundamentals.org/webgl/lessons/webgl-3d-lighting-spot.html -->
     <script type="x-shader/x-vertex" id="vshader">
-      attribute vec4 aPosition;
-      attribute vec4 aNormal;   //variable for normal vector at each vertex
+        attribute vec4 aPosition;
+        attribute vec4 aNormal;                 //variable for normal vector at each vertex
 
-      uniform mat4 uModelMatrix;                //Model Matrix
-      uniform mat4 uViewMatrix;                 //View Matrix
-      uniform mat4 uProjectionMatrix;           //Projection Matrix
+        uniform mat4 uModelMatrix;              //Model Matrix
+        uniform mat4 uViewMatrix;               //View Matrix
+        uniform mat4 uProjectionMatrix;         //Projection Matrix
 
-      uniform mat4 uNormalMatrix;               //Normal Matrix
-      
-      uniform vec4 uMaterialDiffuseColor;       //Kd
-      uniform vec4 uLightDiffuseColor;          //Ld
+        uniform mat4 uNormalMatrix;             //Normal Matrix
 
-      uniform vec4 uLightDirectionVector;       //l
+        uniform vec4 uMaterialDiffuseColor;     // Kd
+        uniform vec4 uLightDiffuseColor;        // Ld
 
-      varying vec4 vDiffuseColor;
+        uniform vec4 uLightDirectionVector;     // l - global light
 
-      void main() {
+        // spotlights
+        uniform vec3 uSpotPosition;
+        uniform vec3 uSpotDirection;
+        uniform float uSpotCutoff;
 
-        gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * aPosition;
+        varying vec4 vDiffuseColor;             // intensity of the colors based on light
 
-        //get Corrected Normal vector from transformation
-        vec4 corrected_aNormal = uNormalMatrix * aNormal;
+        void main() {
 
-        //get normalized normal and light vector
+            // gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * aPosition;
+
+            // for the spotlights
+            vec4 worldPosition = uModelMatrix * aPosition;
+
+            // final projected position
+            gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;
+
+            // get Corrected Normal vector from transformation
+            vec4 corrected_aNormal = uNormalMatrix * aNormal;
+
+            //get normalized normal and light vector
             vec4 normalized_aNormalVector = normalize(corrected_aNormal);
+
+            // GLOBAL LIGHT PART
             vec4 normalized_uLightDirectionVector = normalize(uLightDirectionVector);
+            float globalLambert = max(dot(-normalized_uLightDirectionVector, normalized_aNormalVector), 0.0);
 
-        //get lambertCooeficient = (-l . n)
-            float lambertCoefficient = max(dot(-normalized_uLightDirectionVector,normalized_aNormalVector),0.0);
+            // SPOTLIGHT PART
+            vec3 spotVector = normalize(uSpotPosition - worldPosition.xyz);
+            float theta = dot(normalize(-spotVector), normalize(uSpotDirection));
+            float spotlightLambert = 0.0;
 
-        //Fd = Ld * Kd * (n dot -l)
-            vec4 diffuseColor =  uMaterialDiffuseColor * uLightDiffuseColor * lambertCoefficient;
+            // this defines the cone part of the spotlight
+            if(theta > uSpotCutoff){
+                spotlightLambert = max(dot(spotVector, normalized_aNormalVector.xyz), 0.0);
+            }
+            
+            // combine lights
+            float totalLight = globalLambert + spotlightLambert;
+            vec4 diffuseColor = uMaterialDiffuseColor * uLightDiffuseColor * totalLight;
+            vDiffuseColor = vec4(diffuseColor.r, diffuseColor.g, diffuseColor.b, 1.0);
+        }
+</script>
 
-        vDiffuseColor = vec4(diffuseColor.r, diffuseColor.g, diffuseColor.b, 1.0);
-      }
-    </script>
 
     <script type="x-shader/x-fragment" id="fshader">
       precision mediump float;
