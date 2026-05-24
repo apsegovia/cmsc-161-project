@@ -2,9 +2,39 @@
 
 <head>
     <title>Segovia 161 Project</title>
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #main_canvas {
+            opacity: 0;
+            animation: fadeIn 2s ease-in forwards;
+            border: 1px solid grey;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 
 <body>
+    <audio id="bgm" loop autoplay>
+        <source src="dive_to_the_heart.mp3" type="audio/mpeg">
+    </audio>
     <!-- https://webglfundamentals.org/webgl/lessons/webgl-3d-lighting-spot.html -->
     <script type="x-shader/x-vertex" id="vshader">
         attribute vec4 aPosition;
@@ -88,7 +118,7 @@
     <script src="utils/webgl-utils.js"></script>
     <script src="utils/webgl-debug.js"></script>
     <script src="utils/gl-matrix-min.js"></script>
-    <canvas id="main_canvas" width="1024" height="576" style="border:1px solid grey"></canvas>
+    <canvas id="main_canvas" width="1280" height="720""></canvas>
     <script type="module" src="main.js"></script>
 </body>
 
