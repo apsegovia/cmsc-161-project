@@ -53,9 +53,6 @@
 			"doubleSided":true,
 			"name":"Material.001",
 			"pbrMetallicRoughness":{
-				"baseColorTexture":{
-					"index":0
-				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5
 			}
@@ -64,9 +61,6 @@
 			"doubleSided":true,
 			"name":"Material",
 			"pbrMetallicRoughness":{
-				"baseColorTexture":{
-					"index":1
-				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5
 			}
@@ -74,7 +68,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.001",
+			"name":"Pedestals",
 			"primitives":[
 				{
 					"attributes":{
@@ -89,7 +83,7 @@
 			]
 		},
 		{
-			"name":"Cylinder.001",
+			"name":"Stage",
 			"primitives":[
 				{
 					"attributes":{
@@ -106,7 +100,7 @@
 			]
 		},
 		{
-			"name":"Cube",
+			"name":"Sword",
 			"primitives":[
 				{
 					"attributes":{
@@ -121,7 +115,7 @@
 			]
 		},
 		{
-			"name":"Cube.003",
+			"name":"Shield",
 			"primitives":[
 				{
 					"attributes":{
@@ -136,7 +130,7 @@
 			]
 		},
 		{
-			"name":"Sphere.003",
+			"name":"Staff",
 			"primitives":[
 				{
 					"attributes":{
@@ -149,28 +143,6 @@
 					"indices":29
 				}
 			]
-		}
-	],
-	"textures":[
-		{
-			"sampler":0,
-			"source":0
-		},
-		{
-			"sampler":0,
-			"source":1
-		}
-	],
-	"images":[
-		{
-			"mimeType":"image/png",
-			"name":"pedestal texture",
-			"uri":"pedestal%20texture.png"
-		},
-		{
-			"mimeType":"image/png",
-			"name":"Station_of_Awakening-_Snow_White_(Art)_KH",
-			"uri":"Station_of_Awakening-_Snow_White_%28Art%29_KH.png"
 		}
 	],
 	"accessors":[
@@ -590,12 +562,6 @@
 			"byteLength":3648,
 			"byteOffset":124748,
 			"target":34963
-		}
-	],
-	"samplers":[
-		{
-			"magFilter":9729,
-			"minFilter":9987
 		}
 	],
 	"buffers":[
